@@ -3,15 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>센티널 콘솔 - 카페이야기</title>
+  <title>센티널 콘솔 - Aegis Access Lab</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/static/css/theme.css">
 </head>
 <body class="bg-gray-50 text-gray-800 min-h-screen flex flex-col">
 
   {% include 'partials/_nav.html' %}
 
-  <main class="max-w-5xl mx-auto px-4 py-6 flex-1 w-full">
-    <h1 class="text-lg font-bold text-gray-900 mb-4">센티널 콘솔 · 회원 관리</h1>
+  <main class="max-w-6xl mx-auto px-4 py-8 flex-1 w-full">
+    <div class="mb-6">
+      <p class="text-xs font-bold tracking-[0.18em] text-rose-600 uppercase">Sentinel Console</p>
+      <h1 class="mt-1 text-2xl font-bold text-gray-900">회원 DB 현황</h1>
+      <p class="mt-1 text-sm text-gray-500">회원 정보와 권한을 조회하고 관리합니다.</p>
+    </div>
     <div id="page-content">
       <div class="text-center text-gray-400 py-12">불러오는 중...</div>
     </div>
@@ -22,6 +27,7 @@
   <script src="/static/js/site.js"></script>
   <script>
     let meCache = null;
+    let allUsers = [];
     const ROLE_OPTIONS = [[0, '옵저버'], [1, '가디언'], [2, '센티널']];
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -45,45 +51,117 @@
         return;
       }
 
-      container.innerHTML = `
-        <div class="bg-white rounded-xl shadow-sm overflow-x-auto">
-          <table class="w-full text-sm">
-            <thead class="bg-gray-50 text-gray-500 text-left">
-              <tr>
-                <th class="px-4 py-3">ID</th>
-                <th class="px-4 py-3">아이디</th>
-                <th class="px-4 py-3">등급</th>
-                <th class="px-4 py-3">가입일</th>
-                <th class="px-4 py-3"></th>
-              </tr>
-            </thead>
-            <tbody id="user-rows"></tbody>
-          </table>
-        </div>`;
+      allUsers = data.users;
+      renderDashboard();
+    }
 
+    function renderDashboard() {
+      const counts = [0, 1, 2].map(role => allUsers.filter(u => u.role === role).length);
+      const container = document.getElementById('page-content');
+      container.innerHTML = `
+        <section class="bg-gradient-to-r from-black to-zinc-900 border border-zinc-800 text-white rounded-2xl p-5 shadow-sm mb-5">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p class="text-sm text-slate-300">USERS 테이블 · 실시간 조회</p>
+              <p class="mt-1 text-lg font-bold">총 ${allUsers.length}명의 회원 데이터</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-semibold text-emerald-200 border border-emerald-400/40 bg-emerald-400/10 px-3 py-1.5 rounded-full">접근 허용 · ${Site.escapeHtml(meCache.role_name)}</span>
+              <button onclick="loadUsers()" class="text-xs font-semibold border border-white/30 hover:bg-white/10 px-3 py-1.5 rounded-lg transition">↻ 새로고침</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
+          ${statCard('전체 회원', allUsers.length, 'bg-slate-100 text-slate-700')}
+          ${statCard('옵저버', counts[0], 'bg-gray-100 text-gray-700')}
+          ${statCard('가디언', counts[1], 'bg-amber-100 text-amber-700')}
+          ${statCard('센티널', counts[2], 'bg-rose-100 text-rose-700')}
+        </section>
+
+        <section class="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+          <div class="p-4 border-b border-gray-100 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+            <div>
+              <h2 class="font-bold text-gray-900">회원 레코드</h2>
+              <p class="text-xs text-gray-400 mt-0.5">아이디와 권한을 수정한 뒤 저장하세요.</p>
+            </div>
+            <div class="flex gap-2">
+              <input id="user-search" oninput="renderUserRows()" placeholder="아이디 검색"
+                     class="w-32 sm:w-44 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-400">
+              <select id="role-filter" onchange="renderUserRows()"
+                      class="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white">
+                <option value="all">전체 권한</option>
+                ${ROLE_OPTIONS.map(([value, label]) => `<option value="${value}">${label}</option>`).join('')}
+              </select>
+            </div>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full min-w-[720px] text-sm">
+              <thead class="bg-slate-50 text-left text-xs font-semibold tracking-wide text-slate-500">
+                <tr>
+                  <th class="px-5 py-3">ID</th>
+                  <th class="px-5 py-3">아이디</th>
+                  <th class="px-5 py-3">권한</th>
+                  <th class="px-5 py-3">가입일</th>
+                  <th class="px-5 py-3 text-right">관리</th>
+                </tr>
+              </thead>
+              <tbody id="user-rows"></tbody>
+            </table>
+          </div>
+        </section>`;
+      renderUserRows();
+    }
+
+    function statCard(label, count, color) {
+      return `<div class="rounded-xl p-4 ${color}">
+        <p class="text-xs font-semibold opacity-70">${label}</p>
+        <p class="mt-1 text-2xl font-bold">${count}<span class="ml-1 text-sm font-medium">명</span></p>
+      </div>`;
+    }
+
+    function renderUserRows() {
+      const search = (document.getElementById('user-search')?.value || '').trim().toLowerCase();
+      const roleFilter = document.getElementById('role-filter')?.value || 'all';
+      const users = allUsers.filter(u =>
+        u.username.toLowerCase().includes(search) &&
+        (roleFilter === 'all' || u.role === Number(roleFilter)));
       const rows = document.getElementById('user-rows');
-      data.users.forEach(u => {
+      if (!rows) return;
+      rows.innerHTML = '';
+      if (users.length === 0) {
+        rows.innerHTML = '<tr><td colspan="5" class="px-5 py-12 text-center text-gray-400">조건에 맞는 회원이 없습니다.</td></tr>';
+        return;
+      }
+      users.forEach(u => {
         const tr = document.createElement('tr');
-        tr.className = 'border-t border-gray-100';
+        tr.className = 'border-t border-gray-100 hover:bg-slate-50/70 transition';
         tr.innerHTML = `
-          <td class="px-4 py-3">${u.id}</td>
-          <td class="px-4 py-3 font-medium">
+          <td class="px-5 py-3 text-gray-400 font-mono text-xs">#${u.id}</td>
+          <td class="px-5 py-3 font-medium">
             <input data-id="${u.id}" value="${Site.escapeHtml(u.username)}"
-                   class="username-input w-36 border border-gray-300 rounded px-2 py-1 text-sm">
+                   class="username-input w-40 border border-gray-300 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-400">
           </td>
-          <td class="px-4 py-3">
-            <select data-id="${u.id}" class="role-select border border-gray-300 rounded px-2 py-1 text-sm">
+          <td class="px-5 py-3">
+            <select data-id="${u.id}" class="role-select border border-gray-300 rounded-lg px-2.5 py-1.5 text-sm bg-white">
               ${ROLE_OPTIONS.map(([v, l]) => `<option value="${v}" ${v === u.role ? 'selected' : ''}>${l}</option>`).join('')}
             </select>
           </td>
-          <td class="px-4 py-3 text-gray-400">${(u.created_at || '').slice(0, 10)}</td>
-          <td class="px-4 py-3 text-right space-x-2">
-            <button onclick="updateRole(${u.id})" class="text-xs text-amber-700 hover:underline">저장</button>
+          <td class="px-5 py-3 text-gray-400">${formatDate(u.created_at)}</td>
+          <td class="px-5 py-3 text-right space-x-2">
+            <button onclick="updateRole(${u.id})" class="text-xs font-semibold text-white bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 px-3 py-1.5 rounded-lg">저장</button>
             <button onclick="removeUser(${u.id})"
-                    class="text-xs ${u.id === meCache.id ? 'text-gray-300 cursor-not-allowed' : 'text-red-500 hover:underline'}"
+                    class="text-xs font-semibold ${u.id === meCache.id ? 'text-gray-300 cursor-not-allowed' : 'text-rose-600 hover:bg-rose-50 px-2 py-1.5 rounded-lg'}"
                     ${u.id === meCache.id ? 'disabled title="본인 계정은 삭제할 수 없습니다"' : ''}>삭제</button>
           </td>`;
         rows.appendChild(tr);
+      });
+    }
+
+    function formatDate(isoDate) {
+      if (!isoDate) return '-';
+      return new Date(isoDate).toLocaleDateString('ko-KR', {
+        year: 'numeric', month: '2-digit', day: '2-digit',
       });
     }
 

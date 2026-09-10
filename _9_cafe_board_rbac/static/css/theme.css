@@ -1,0 +1,67 @@
+/* Aegis Access Lab — dark security-console theme */
+:root { color-scheme: dark; }
+
+body.bg-gray-50 {
+  background: #000 !important;
+  color: #e2e8f0 !important;
+}
+
+header.bg-white,
+.bg-white {
+  background-color: #0a0a0a !important;
+}
+
+.bg-gray-50 { background-color: #0d0d0d !important; }
+.bg-gray-100 { background-color: #181818 !important; }
+.bg-slate-50 { background-color: #0d0d0d !important; }
+.bg-slate-100 { background-color: #181818 !important; }
+.bg-amber-50 { background-color: #261a05 !important; }
+.bg-amber-100 { background-color: #3a2606 !important; }
+.bg-rose-50 { background-color: #26070f !important; }
+.bg-rose-100 { background-color: #390b18 !important; }
+
+.text-gray-900, .text-gray-800 { color: #f8fafc !important; }
+.text-gray-700, .text-gray-600 { color: #d4d4d8 !important; }
+.text-gray-500, .text-gray-400 { color: #a1a1aa !important; }
+.text-slate-900, .text-slate-800 { color: #f8fafc !important; }
+.text-slate-700, .text-slate-600, .text-slate-500 { color: #d4d4d8 !important; }
+.text-amber-700 { color: #fbbf24 !important; }
+.text-rose-700, .text-rose-600 { color: #fb7185 !important; }
+.text-emerald-700 { color: #6ee7b7 !important; }
+
+.border-gray-100, .border-gray-200, .border-gray-300,
+.border-slate-100, .border-slate-200 {
+  border-color: #2a2a2a !important;
+}
+
+input, textarea, select {
+  background-color: #111 !important;
+  color: #e2e8f0 !important;
+  border-color: #303030 !important;
+}
+
+input::placeholder, textarea::placeholder { color: #64748b !important; }
+input:focus, textarea:focus, select:focus {
+  border-color: #e11d48 !important;
+  box-shadow: 0 0 0 2px rgb(225 29 72 / 0.25) !important;
+}
+
+.shadow-sm, .shadow-xl { box-shadow: 0 12px 32px rgb(0 0 0 / 0.28) !important; }
+.hover\:bg-gray-100:hover, .hover\:bg-slate-50:hover { background-color: #202020 !important; }
+.hover\:bg-amber-100:hover { background-color: #4a3107 !important; }
+.hover\:bg-rose-50:hover { background-color: #460c1c !important; }
+
+/* 검은 바탕 위에 아주 옅은 무채색 그리드를 넣어 콘솔 분위기를 만든다. */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: .12;
+  background-image: linear-gradient(rgb(255 255 255 / .10) 1px, transparent 1px),
+                    linear-gradient(90deg, rgb(255 255 255 / .10) 1px, transparent 1px);
+  background-size: 32px 32px;
+  mask-image: linear-gradient(to bottom, black, transparent 75%);
+}
+
+header, main, #auth-modal, #post-modal { position: relative; }

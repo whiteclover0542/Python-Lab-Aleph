@@ -1,4 +1,4 @@
-/* 카페이야기 공통 인증/등급 유틸리티 — 모든 페이지가 이 파일 하나만 불러오면 된다.
+/* Aegis Access Lab 공통 인증/등급 유틸리티 — 모든 페이지가 이 파일 하나만 불러오면 된다.
  * 로그인 모달(partials/_auth_modal.html)과 헤더(partials/_nav.html)가 이 파일의
  * 함수/ID 이름에 맞춰져 있으므로, 새 페이지를 만들 때도 그대로 include 하면 된다.
  */
@@ -36,8 +36,9 @@ const Site = (() => {
 
   function renderNav(me) {
     const html = me
-      ? `<span class="text-xs font-bold px-2 py-1 rounded-full ${ROLE_BADGE[me.role]}">${escapeHtml(me.role_name)}</span>
-         <span class="text-sm text-gray-700">${escapeHtml(me.username)}님</span>
+      ? `<span class="text-sm text-gray-700 whitespace-nowrap">로그인: <strong>${escapeHtml(me.username)}</strong></span>
+         <span class="text-xs font-bold px-2 py-1 rounded-full ${ROLE_BADGE[me.role]} whitespace-nowrap"
+               title="DB에서 매 요청마다 확인한 최신 권한">권한: ${escapeHtml(me.role_name)}</span>
          <button onclick="Site.logout()" class="text-sm text-red-500 hover:underline">로그아웃</button>`
       : `<button onclick="Site.openAuthModal(true)" class="text-sm text-amber-700 font-medium hover:underline">로그인</button>
          <button onclick="Site.openAuthModal(false)" class="bg-amber-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-amber-700 transition">회원가입</button>`;

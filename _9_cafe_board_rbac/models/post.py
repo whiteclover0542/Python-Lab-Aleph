@@ -4,7 +4,7 @@ from extensions import db
 
 
 class Post(db.Model):
-  """카페이야기 전체 게시판 글 — 등급과 무관하게 로그인만 하면 누구나 쓸 수 있다.
+  """Aegis Access Lab 전체 게시판 글 — 등급과 무관하게 로그인만 하면 누구나 쓸 수 있다.
 
   (골드/관리자 페이지와 대조되는 '등급 체크 없는' 기준선 역할)
   """
