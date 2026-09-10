@@ -6,7 +6,7 @@ const Site = (() => {
   let isLoginMode = true;
   let onAuthSuccess = null; // 로그인 성공 후 호출할 페이지별 콜백
 
-  const ROLE_NAMES = ['일반등급', '골드등급', '관리자'];
+  const ROLE_NAMES = ['옵저버', '가디언', '센티널'];
   const ROLE_BADGE = [
     'bg-gray-100 text-gray-600',
     'bg-amber-100 text-amber-700',
@@ -126,7 +126,7 @@ const Site = (() => {
       if (onAuthSuccess) onAuthSuccess(me);
       else location.reload();
     } else {
-      alert('회원가입 완료! (일반등급으로 가입되었습니다) 로그인해주세요.');
+      alert('회원가입 완료! (옵저버 등급으로 가입되었습니다) 로그인해주세요.');
       openAuthModal(true, onAuthSuccess);
     }
   }

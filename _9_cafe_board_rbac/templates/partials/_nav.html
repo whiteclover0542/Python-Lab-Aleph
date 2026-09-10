@@ -1,4 +1,4 @@
-{# 공통 헤더 — 골드등급/관리자 링크는 항상 보인다(요구사항 1).
+{# 공통 헤더 — 가디언/센티널 링크는 항상 보인다(요구사항 1).
    실제 접근 가능 여부는 각 페이지가 로드된 뒤 Site.guardPage() 가 판정한다. #}
 <header class="bg-white shadow-sm sticky top-0 z-20">
   <div class="max-w-5xl mx-auto px-4">
@@ -10,8 +10,8 @@
       <!-- 데스크톱 메뉴 (md 이상에서만 보임) -->
       <nav class="hidden md:flex items-center space-x-1">
         <a href="/" class="px-3 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 transition">게시판</a>
-        <a href="/gold" class="px-3 py-2 rounded-lg text-sm font-medium text-amber-700 bg-amber-50 hover:bg-amber-100 transition">🥇 골드 라운지</a>
-        <a href="/admin" class="px-3 py-2 rounded-lg text-sm font-medium text-rose-700 bg-rose-50 hover:bg-rose-100 transition">🛠 관리자</a>
+        <a href="/gold" class="px-3 py-2 rounded-lg text-sm font-medium text-amber-700 bg-amber-50 hover:bg-amber-100 transition">🛡 가디언 룸</a>
+        <a href="/admin" class="px-3 py-2 rounded-lg text-sm font-medium text-rose-700 bg-rose-50 hover:bg-rose-100 transition">🛰 센티널 콘솔</a>
         <span id="auth-nav" class="flex items-center space-x-2 ml-2"></span>
       </nav>
 
@@ -31,8 +31,8 @@
     <!-- 모바일 드롭다운 메뉴 -->
     <nav id="mobile-menu" class="md:hidden hidden pb-3 space-y-1 border-t border-gray-100 pt-2">
       <a href="/" class="block px-3 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100">게시판</a>
-      <a href="/gold" class="block px-3 py-2 rounded-lg text-sm font-medium text-amber-700 bg-amber-50">🥇 골드 라운지</a>
-      <a href="/admin" class="block px-3 py-2 rounded-lg text-sm font-medium text-rose-700 bg-rose-50">🛠 관리자</a>
+      <a href="/gold" class="block px-3 py-2 rounded-lg text-sm font-medium text-amber-700 bg-amber-50">🛡 가디언 룸</a>
+      <a href="/admin" class="block px-3 py-2 rounded-lg text-sm font-medium text-rose-700 bg-rose-50">🛰 센티널 콘솔</a>
       <span id="auth-nav-mobile" class="block px-3 py-2 space-x-2"></span>
     </nav>
   </div>

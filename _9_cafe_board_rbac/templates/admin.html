@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>관리자 - 카페이야기</title>
+  <title>센티널 콘솔 - 카페이야기</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-50 text-gray-800 min-h-screen flex flex-col">
@@ -11,7 +11,7 @@
   {% include 'partials/_nav.html' %}
 
   <main class="max-w-5xl mx-auto px-4 py-6 flex-1 w-full">
-    <h1 class="text-lg font-bold text-gray-900 mb-4">회원 관리</h1>
+    <h1 class="text-lg font-bold text-gray-900 mb-4">센티널 콘솔 · 회원 관리</h1>
     <div id="page-content">
       <div class="text-center text-gray-400 py-12">불러오는 중...</div>
     </div>
@@ -22,10 +22,10 @@
   <script src="/static/js/site.js"></script>
   <script>
     let meCache = null;
-    const ROLE_OPTIONS = [[0, '일반등급'], [1, '골드등급'], [2, '관리자']];
+    const ROLE_OPTIONS = [[0, '옵저버'], [1, '가디언'], [2, '센티널']];
 
     document.addEventListener('DOMContentLoaded', () => {
-      // 요구사항 6: 관리자(2) 미만이면 guardPage 가 #page-content 에 예외화면을 그리고 끝낸다.
+      // 요구사항 6: 센티널(2) 미만이면 guardPage 가 #page-content 에 예외화면을 그리고 끝낸다.
       Site.guardPage(2, 'page-content', (me) => {
         meCache = me;
         return loadUsers();
@@ -67,7 +67,10 @@
         tr.className = 'border-t border-gray-100';
         tr.innerHTML = `
           <td class="px-4 py-3">${u.id}</td>
-          <td class="px-4 py-3 font-medium">${Site.escapeHtml(u.username)}</td>
+          <td class="px-4 py-3 font-medium">
+            <input data-id="${u.id}" value="${Site.escapeHtml(u.username)}"
+                   class="username-input w-36 border border-gray-300 rounded px-2 py-1 text-sm">
+          </td>
           <td class="px-4 py-3">
             <select data-id="${u.id}" class="role-select border border-gray-300 rounded px-2 py-1 text-sm">
               ${ROLE_OPTIONS.map(([v, l]) => `<option value="${v}" ${v === u.role ? 'selected' : ''}>${l}</option>`).join('')}
@@ -86,11 +89,13 @@
 
     async function updateRole(id) {
       const select = document.querySelector(`.role-select[data-id="${id}"]`);
+      const usernameInput = document.querySelector(`.username-input[data-id="${id}"]`);
       const role = parseInt(select.value, 10);
+      const username = usernameInput.value.trim();
       const res = await fetch(`/api/admin/users/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${Site.getToken()}` },
-        body: JSON.stringify({ role }),
+        body: JSON.stringify({ username, role }),
       });
       const data = await res.json();
       alert(data.msg);

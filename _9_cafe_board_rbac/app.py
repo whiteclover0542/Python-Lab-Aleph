@@ -3,11 +3,11 @@
 구조
   config.py       설정(.env 로딩) — 기본은 SQLite 파일이라 별도 DB 설치 없이 바로 실행된다.
   extensions.py   db · jwt 인스턴스
-  constants.py    등급 상수 (일반=0, 골드=1, 관리자=2)
+  constants.py    등급 상수 (옵저버=0, 가디언=1, 센티널=2)
   decorators.py   role_required() — 등급 기반 접근 제어 데코레이터
   models/         User(role 포함) · Post
   controllers/    page · auth · post · gold · admin (블루프린트)
-  templates/      화면 (partials/_nav.html = 공통 헤더: 골드/관리자 링크 포함)
+  templates/      화면 (partials/_nav.html = 공통 헤더: 가디언/센티널 링크 포함)
 
 실행:  python app.py   →  http://localhost:5000
 """
@@ -46,6 +46,8 @@ def create_app(config_class=Config):
     username = username.strip()
     if not username:
       raise click.ClickException('아이디는 비워둘 수 없습니다.')
+    if not password:
+      raise click.ClickException('비밀번호는 비워둘 수 없습니다.')
     if User.query.filter_by(username=username).first():
       raise click.ClickException('이미 존재하는 사용자입니다.')
 

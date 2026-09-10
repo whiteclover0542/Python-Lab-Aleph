@@ -35,7 +35,7 @@ def create_post():
 @jwt_required()
 def update_post(id):
   user_id = int(get_jwt_identity())
-  post = Post.query.get_or_404(id)
+  post = db.get_or_404(Post, id)
   if post.author_id != user_id:
     return jsonify({'msg': '권한이 없습니다.'}), 403
 
@@ -50,7 +50,7 @@ def update_post(id):
 @jwt_required()
 def delete_post(id):
   user_id = int(get_jwt_identity())
-  post = Post.query.get_or_404(id)
+  post = db.get_or_404(Post, id)
   if post.author_id != user_id:
     return jsonify({'msg': '권한이 없습니다.'}), 403
 

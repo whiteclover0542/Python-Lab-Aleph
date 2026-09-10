@@ -84,11 +84,13 @@ def test_admin_can_promote_and_delete_user(client, app):
   token = login(client, 'admin')
 
   updated = client.put(
-      f'/api/admin/users/{target_id}', headers=auth(token), json={'role': ROLE_GOLD})
+      f'/api/admin/users/{target_id}', headers=auth(token),
+      json={'username': 'gold-member', 'role': ROLE_GOLD})
   assert updated.status_code == 200
   assert updated.get_json()['role'] == ROLE_GOLD
+  assert updated.get_json()['username'] == 'gold-member'
 
-  member_token = login(client, 'member')
+  member_token = login(client, 'gold-member')
   assert client.get('/api/gold/lounge', headers=auth(member_token)).status_code == 200
 
   deleted = client.delete(f'/api/admin/users/{target_id}', headers=auth(token))
@@ -102,7 +104,8 @@ def test_admin_cannot_delete_or_demote_self(client, app):
   token = login(client, 'admin')
   assert client.delete(f'/api/admin/users/{admin_id}', headers=auth(token)).status_code == 400
   assert client.put(
-      f'/api/admin/users/{admin_id}', headers=auth(token), json={'role': ROLE_GENERAL}
+      f'/api/admin/users/{admin_id}', headers=auth(token),
+      json={'username': 'admin', 'role': ROLE_GENERAL}
   ).status_code == 400
 
 
@@ -114,8 +117,25 @@ def test_role_change_is_effective_without_new_login(client, app):
 
   assert client.get('/api/gold/lounge', headers=auth(member_token)).status_code == 403
   client.put(
-      f'/api/admin/users/{member_id}', headers=auth(admin_token), json={'role': ROLE_GOLD})
+      f'/api/admin/users/{member_id}', headers=auth(admin_token),
+      json={'username': 'member', 'role': ROLE_GOLD})
   assert client.get('/api/gold/lounge', headers=auth(member_token)).status_code == 200
+
+
+def test_admin_rejects_duplicate_or_empty_username(client, app):
+  create_user(app, 'admin', ROLE_ADMIN)
+  target_id = create_user(app, 'member', ROLE_GENERAL)
+  token = login(client, 'admin')
+
+  duplicate = client.put(
+      f'/api/admin/users/{target_id}', headers=auth(token),
+      json={'username': 'admin', 'role': ROLE_GENERAL})
+  assert duplicate.status_code == 400
+
+  empty = client.put(
+      f'/api/admin/users/{target_id}', headers=auth(token),
+      json={'username': '  ', 'role': ROLE_GENERAL})
+  assert empty.status_code == 400
 
 
 def test_page_routes_render(client):
