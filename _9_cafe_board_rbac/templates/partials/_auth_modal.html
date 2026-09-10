@@ -1,0 +1,15 @@
+{# 로그인/회원가입 공용 모달 — static/js/site.js 의 Site.openAuthModal() 이 이 DOM 을 채운다. #}
+<div id="auth-modal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4 z-50">
+  <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl">
+    <h2 id="modal-title" class="text-lg font-bold mb-4">로그인</h2>
+    <div class="space-y-3">
+      <input type="text" id="modal-username" placeholder="아이디" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
+      <input type="password" id="modal-password" placeholder="비밀번호" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
+    </div>
+    <p class="text-xs text-gray-400 mt-2">※ 가입은 항상 일반등급으로 생성됩니다. 등급 변경은 관리자만 할 수 있습니다.</p>
+    <div class="mt-4 flex justify-end space-x-2">
+      <button onclick="Site.closeAuthModal()" class="px-4 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-100">취소</button>
+      <button id="modal-submit-btn" onclick="Site.submitAuth()" class="px-4 py-2 rounded-lg text-sm bg-amber-600 text-white hover:bg-amber-700">로그인</button>
+    </div>
+  </div>
+</div>

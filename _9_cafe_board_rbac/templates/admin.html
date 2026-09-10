@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>관리자 - 카페이야기</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-800 min-h-screen flex flex-col">
+
+  {% include 'partials/_nav.html' %}
+
+  <main class="max-w-5xl mx-auto px-4 py-6 flex-1 w-full">
+    <h1 class="text-lg font-bold text-gray-900 mb-4">회원 관리</h1>
+    <div id="page-content">
+      <div class="text-center text-gray-400 py-12">불러오는 중...</div>
+    </div>
+  </main>
+
+  {% include 'partials/_auth_modal.html' %}
+
+  <script src="/static/js/site.js"></script>
+  <script>
+    let meCache = null;
+    const ROLE_OPTIONS = [[0, '일반등급'], [1, '골드등급'], [2, '관리자']];
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // 요구사항 6: 관리자(2) 미만이면 guardPage 가 #page-content 에 예외화면을 그리고 끝낸다.
+      Site.guardPage(2, 'page-content', (me) => {
+        meCache = me;
+        return loadUsers();
+      });
+    });
+
+    async function loadUsers() {
+      const res = await fetch('/api/admin/users', {
+        headers: { Authorization: `Bearer ${Site.getToken()}` },
+      });
+      const data = await res.json();
+      const container = document.getElementById('page-content');
+
+      // 데이터 API 호출 시점에도 서버가 한 번 더 막는다(방어선 2단계).
+      if (!res.ok) {
+        container.innerHTML = Site.forbiddenHtml(data.msg, 2, meCache.role);
+        return;
+      }
+
+      container.innerHTML = `
+        <div class="bg-white rounded-xl shadow-sm overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead class="bg-gray-50 text-gray-500 text-left">
+              <tr>
+                <th class="px-4 py-3">ID</th>
+                <th class="px-4 py-3">아이디</th>
+                <th class="px-4 py-3">등급</th>
+                <th class="px-4 py-3">가입일</th>
+                <th class="px-4 py-3"></th>
+              </tr>
+            </thead>
+            <tbody id="user-rows"></tbody>
+          </table>
+        </div>`;
+
+      const rows = document.getElementById('user-rows');
+      data.users.forEach(u => {
+        const tr = document.createElement('tr');
+        tr.className = 'border-t border-gray-100';
+        tr.innerHTML = `
+          <td class="px-4 py-3">${u.id}</td>
+          <td class="px-4 py-3 font-medium">${Site.escapeHtml(u.username)}</td>
+          <td class="px-4 py-3">
+            <select data-id="${u.id}" class="role-select border border-gray-300 rounded px-2 py-1 text-sm">
+              ${ROLE_OPTIONS.map(([v, l]) => `<option value="${v}" ${v === u.role ? 'selected' : ''}>${l}</option>`).join('')}
+            </select>
+          </td>
+          <td class="px-4 py-3 text-gray-400">${(u.created_at || '').slice(0, 10)}</td>
+          <td class="px-4 py-3 text-right space-x-2">
+            <button onclick="updateRole(${u.id})" class="text-xs text-amber-700 hover:underline">저장</button>
+            <button onclick="removeUser(${u.id})"
+                    class="text-xs ${u.id === meCache.id ? 'text-gray-300 cursor-not-allowed' : 'text-red-500 hover:underline'}"
+                    ${u.id === meCache.id ? 'disabled title="본인 계정은 삭제할 수 없습니다"' : ''}>삭제</button>
+          </td>`;
+        rows.appendChild(tr);
+      });
+    }
+
+    async function updateRole(id) {
+      const select = document.querySelector(`.role-select[data-id="${id}"]`);
+      const role = parseInt(select.value, 10);
+      const res = await fetch(`/api/admin/users/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${Site.getToken()}` },
+        body: JSON.stringify({ role }),
+      });
+      const data = await res.json();
+      alert(data.msg);
+      if (res.ok) loadUsers();
+    }
+
+    async function removeUser(id) {
+      if (!confirm('정말 삭제하시겠습니까?')) return;
+      const res = await fetch(`/api/admin/users/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${Site.getToken()}` },
+      });
+      const data = await res.json();
+      alert(data.msg);
+      if (res.ok) loadUsers();
+    }
+  </script>
+</body>
+</html>

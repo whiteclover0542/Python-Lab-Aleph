@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>카페이야기</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-800 min-h-screen flex flex-col">
+
+  {% include 'partials/_nav.html' %}
+
+  <main class="max-w-4xl mx-auto px-4 py-6 flex-1 w-full">
+    <div class="bg-white p-4 rounded-xl shadow-sm mb-6 flex justify-between items-center">
+      <div>
+        <h1 class="text-lg font-bold text-gray-900">전체 게시판</h1>
+        <p class="text-sm text-gray-400">로그인한 회원이면 등급과 무관하게 누구나 글을 쓸 수 있습니다.</p>
+      </div>
+      <button id="write-btn" onclick="openPostModal()" class="hidden bg-amber-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-amber-700 transition">글쓰기</button>
+    </div>
+
+    <div id="posts-container" class="space-y-4"></div>
+  </main>
+
+  {% include 'partials/_auth_modal.html' %}
+
+  <!-- 글작성/수정 모달 -->
+  <div id="post-modal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl p-6 w-full max-w-lg shadow-xl">
+      <h2 id="post-modal-title" class="text-lg font-bold mb-4">새 글 작성</h2>
+      <input type="hidden" id="edit-post-id">
+      <div class="space-y-3">
+        <input type="text" id="post-title" placeholder="제목을 입력하세요" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-500">
+        <textarea id="post-content" rows="5" placeholder="내용을 입력하세요" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-500"></textarea>
+      </div>
+      <div class="mt-6 flex justify-end space-x-2">
+        <button onclick="closePostModal()" class="px-4 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-100">취소</button>
+        <button onclick="submitPost()" class="px-4 py-2 rounded-lg text-sm bg-amber-600 text-white hover:bg-amber-700">저장</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/js/site.js"></script>
+  <script>
+    let me = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      Site.guardPage(null, null, (currentMe) => {
+        me = currentMe;
+        document.getElementById('write-btn').classList.toggle('hidden', !me);
+        loadPosts();
+      });
+    });
+
+    async function loadPosts() {
+      const res = await fetch('/api/posts');
+      const data = await res.json();
+      const container = document.getElementById('posts-container');
+
+      if (data.posts.length === 0) {
+        container.innerHTML = `<div class="text-center py-12 text-gray-400 bg-white rounded-xl shadow-sm">게시글이 없습니다.</div>`;
+        return;
+      }
+
+      container.innerHTML = '';
+      data.posts.forEach(post => {
+        const isOwner = me && post.author === me.username;
+        const div = document.createElement('div');
+        div.className = 'bg-white p-5 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition';
+        div.innerHTML = `
+          <div class="flex justify-between items-start mb-2">
+            <span class="text-xs text-gray-400">작성자: ${Site.escapeHtml(post.author)}</span>
+          </div>
+          <h3 class="text-lg font-bold text-gray-900 mb-1">${Site.escapeHtml(post.title)}</h3>
+          <p class="text-sm text-gray-600 whitespace-pre-line mb-4">${Site.escapeHtml(post.content)}</p>
+          ${isOwner ? `
+            <div class="flex justify-end space-x-2">
+              <button onclick='openEditModal(${post.id}, ${JSON.stringify(post.title)}, ${JSON.stringify(post.content)})' class="text-xs text-amber-700 hover:underline">수정</button>
+              <button onclick="deletePost(${post.id})" class="text-xs text-red-500 hover:underline">삭제</button>
+            </div>` : ''}
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function openPostModal() {
+      document.getElementById('post-modal-title').innerText = '새 글 작성';
+      document.getElementById('edit-post-id').value = '';
+      document.getElementById('post-title').value = '';
+      document.getElementById('post-content').value = '';
+      document.getElementById('post-modal').classList.remove('hidden');
+    }
+    function openEditModal(id, title, content) {
+      document.getElementById('post-modal-title').innerText = '글 수정';
+      document.getElementById('edit-post-id').value = id;
+      document.getElementById('post-title').value = title;
+      document.getElementById('post-content').value = content;
+      document.getElementById('post-modal').classList.remove('hidden');
+    }
+    function closePostModal() {
+      document.getElementById('post-modal').classList.add('hidden');
+    }
+
+    async function submitPost() {
+      const id = document.getElementById('edit-post-id').value;
+      const title = document.getElementById('post-title').value;
+      const content = document.getElementById('post-content').value;
+      const method = id ? 'PUT' : 'POST';
+      const url = id ? `/api/posts/${id}` : '/api/posts';
+
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${Site.getToken()}` },
+        body: JSON.stringify({ title, content }),
+      });
+      if (res.ok) {
+        closePostModal();
+        loadPosts();
+      } else {
+        alert('처리에 실패했습니다.');
+      }
+    }
+
+    async function deletePost(id) {
+      if (!confirm('정말 삭제하시겠습니까?')) return;
+      const res = await fetch(`/api/posts/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${Site.getToken()}` },
+      });
+      if (res.ok) loadPosts();
+      else alert('삭제 권한이 없습니다.');
+    }
+  </script>
+</body>
+</html>
